@@ -1,9 +1,4 @@
 #include "BST.h"
-#include <cstddef>
-#include <exception>
-#include <ios>
-#include <iostream>
-
 using namespace std;
 
 template <typename T> Node<T>::Node(T value, Node *left, Node *right) {
@@ -116,6 +111,43 @@ template <typename T> bool BST<T>::remove(T value) {
 
   return true;
 }
+
+template <typename T> void BST<T>::pre_order(Node<T> *node) {
+
+  if (this->root == NULL)
+    return;
+  cout << node->get_value();
+
+  if (node->get_left() != NULL) {
+    cout << ", ";
+    this->pre_order(node->get_left());
+  }
+  if (node->get_right() != NULL) {
+    cout << ", ";
+    this->pre_order(node->get_right());
+  }
+
+  if (this->root == node)
+    cout << endl;
+}
+template <typename T> void BST<T>::post_order(Node<T> *node) {
+  if (this->root == NULL)
+    return;
+
+  if (node->get_left() != NULL) {
+    this->post_order(node->get_left());
+  }
+
+  if (node->get_right() != NULL)
+    this->post_order(node->get_right());
+
+  cout << node->get_value();
+
+  if (node == this->root)
+    cout << endl;
+  else
+    cout << ", ";
+}
 template <typename T> Node<T> *BST<T>::get_root() { return this->root; }
 template <typename T> void BST<T>::print(Node<T> *node) {
   if (this->root == NULL)
@@ -132,19 +164,4 @@ template <typename T> void BST<T>::print(Node<T> *node) {
     cout << node->get_value() << " -- ";
     this->print(node->get_right());
   }
-}
-int main() {
-  BST<int> *bst = new BST<int>(3);
-  bst->insert(2);
-  bst->insert(1);
-  bst->insert(10);
-  bst->print(bst->get_root());
-  cout << endl;
-  bst->remove(3);
-  bst->remove(2);
-  bst->remove(10);
-  bst->remove(1);
-  bst->print(bst->get_root());
-  cout << endl;
-  return 0;
 }
