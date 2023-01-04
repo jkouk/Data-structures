@@ -88,7 +88,19 @@ template <typename T> bool BST<T>::remove(T value) {
     if (is_left(*iter, (*(iter + 1))))
       (*(iter + 1))->set_left((*iter)->get_left());
     else
-      (*(iter + 1))->set_right(NULL);
+      (*(iter + 1))->set_right((*iter)->get_left());
+    return true;
+  }
+
+  if ((*iter)->get_left() == NULL) {
+    if (*iter == this->root) {
+      this->root = (*iter)->get_right();
+      return true;
+    }
+    if (is_left(*iter, (*(iter + 1))))
+      (*(iter + 1))->set_left((*iter)->get_right());
+    else
+      (*(iter + 1))->set_right((*iter)->get_right());
     return true;
   }
 
