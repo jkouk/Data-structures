@@ -13,6 +13,12 @@ int main() {
   avl.insert(19);
   avl.insert(4);
   avl.insert(11);
+  avl.remove(6);
+  avl.remove(9);
+  avl.remove(14);
+  avl.remove(4);
+  avl.remove(5);
+  avl.remove(20);
   avl.print(avl.get_root());
   cout << endl;
   return 0;

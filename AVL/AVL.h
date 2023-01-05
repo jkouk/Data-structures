@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
+#include <iterator>
 #include <type_traits>
 #include <vector>
 
@@ -24,6 +25,7 @@ public:
   void insert(T value, AVL_Node<T> *node = NULL);
   vector<int> get_child_heights();
   int get_height();
+  void set_value(T value) { this->value = value; }
   AVL_Node<T> *l_rot(AVL_Node<T> *parent);
   AVL_Node<T> *r_rot(AVL_Node<T> *parent);
   AVL_Node<T> *rl_rot(AVL_Node<T> *parent);
@@ -33,7 +35,6 @@ public:
   void set_left(AVL_Node<T> *node);
   void set_right(AVL_Node<T> *node);
   T get_value();
-  void set_value(T value);
 };
 
 template <typename T> class AVL {
@@ -43,8 +44,8 @@ private:
 public:
   AVL(T value);
   void insert(T value, AVL_Node<T> *node = NULL);
-  bool remove(T value);
-  AVL_Node<T> *find(T value);
+  void remove(T value);
+  vector<AVL_Node<T> *> find(T value);
   AVL_Node<T> *get_root() { return this->root; }
   void pre_order(AVL_Node<T> *node);
   void post_order(AVL_Node<T> *node);
@@ -204,27 +205,167 @@ template <typename T> void AVL<T>::insert(T value, AVL_Node<T> *node) {
 
       if (*(iter + 1) == NULL)
         this->root = top_n;
+
+      continue;
     }
     if (ll_height == right_height + 1) {
       AVL_Node<T> *top_n = (*iter)->r_rot(*(iter + 1));
 
       if (*(iter + 1) == NULL)
         this->root = top_n;
+
+      continue;
     }
     if (rl_height == left_height + 1) {
       AVL_Node<T> *top_n = (*iter)->rl_rot(*(iter + 1));
 
       if (*(iter + 1) == NULL)
         this->root = top_n;
+
+      continue;
     }
     if (lr_height == right_height + 1) {
       AVL_Node<T> *top_n = (*iter)->lr_rot(*(iter + 1));
 
       if (*(iter + 1) == NULL)
         this->root = top_n;
+
+      continue;
     }
   }
 }
+
+template <typename T> vector<AVL_Node<T> *> AVL<T>::find(T value) {
+  AVL_Node<T> *curr_node = this->root, parent = NULL;
+
+  while (1) {
+
+    if (curr_node == NULL) {
+      cout << "Value not found" << endl;
+      break;
+    } else {
+      if (curr_node->get_value() < value)
+        curr_node = curr_node->get_right();
+      else {
+        if (curr_node->get_value() > value)
+          curr_node = curr_node->get_left();
+        else {
+          cout << "Value found" << endl;
+          break;
+        }
+      }
+    }
+    parent = curr_node;
+  }
+
+  return {curr_node, parent};
+}
+
+template <typename T> void AVL<T>::remove(T value) {
+  vector<AVL_Node<T> *> path = {NULL};
+  AVL_Node<T> *curr_node = this->root;
+
+  while (curr_node != NULL) {
+    if (curr_node->get_value() < value) {
+      path.push_back(curr_node);
+      curr_node = curr_node->get_right();
+    }
+
+    else {
+      if (curr_node->get_value() > value) {
+        path.push_back(curr_node);
+        curr_node = curr_node->get_left();
+      }
+
+      else
+        break;
+    }
+  }
+
+  AVL_Node<T> *del_node = curr_node;
+
+  if (curr_node->get_right() == NULL) {
+    if ((*(path.rbegin()) != NULL)) {
+      if (is_left(curr_node, *(path.rbegin())))
+        (*(path.rbegin()))->set_left(curr_node->get_left());
+      else
+        (*(path.rbegin()))->set_right(curr_node->get_left());
+    }
+  }
+
+  else {
+    path.push_back(curr_node);
+
+    curr_node = curr_node->get_right();
+
+    while (1) {
+      if (curr_node->get_left() == NULL) {
+        del_node->set_value(curr_node->get_value());
+        break;
+      }
+      path.push_back(curr_node);
+      curr_node = curr_node->get_left();
+    }
+
+    if (is_left(curr_node, *(path.rbegin())))
+      (*(path.rbegin()))->set_left(NULL);
+    else
+      (*(path.rbegin()))->set_right(NULL);
+  }
+  for (auto iter = path.rbegin(); *iter != NULL; ++iter) {
+    (*iter)->increase_height();
+    int left_height = (*iter)->get_child_heights().at(0),
+        right_height = (*iter)->get_child_heights().at(1);
+    // Right-right grandchildren height and right-left
+    int rr_height = 0, rl_height = 0, lr_height = 0, ll_height = 0;
+    if ((*iter)->get_right() != NULL) {
+      if ((*iter)->get_right()->get_right() != NULL)
+        rr_height = (*iter)->get_right()->get_right()->get_height();
+      if ((*iter)->get_right()->get_left() != NULL)
+        rl_height = (*iter)->get_right()->get_left()->get_height();
+    }
+    if ((*iter)->get_left() != NULL) {
+      if ((*iter)->get_left()->get_right() != NULL)
+        lr_height = (*iter)->get_left()->get_right()->get_height();
+      if ((*iter)->get_left()->get_left() != NULL)
+        ll_height = (*iter)->get_left()->get_left()->get_height();
+    }
+
+    if (rr_height == left_height + 1) {
+      AVL_Node<T> *top_n = (*iter)->l_rot(*(iter + 1));
+
+      if (*(iter + 1) == NULL)
+        this->root = top_n;
+
+      continue;
+    }
+    if (ll_height == right_height + 1) {
+      AVL_Node<T> *top_n = (*iter)->r_rot(*(iter + 1));
+
+      if (*(iter + 1) == NULL)
+        this->root = top_n;
+
+      continue;
+    }
+    if (rl_height == left_height + 1) {
+      AVL_Node<T> *top_n = (*iter)->rl_rot(*(iter + 1));
+
+      if (*(iter + 1) == NULL)
+        this->root = top_n;
+
+      continue;
+    }
+    if (lr_height == right_height + 1) {
+      AVL_Node<T> *top_n = (*iter)->lr_rot(*(iter + 1));
+
+      if (*(iter + 1) == NULL)
+        this->root = top_n;
+
+      continue;
+    }
+  }
+}
+
 template <typename T> void AVL<T>::print(AVL_Node<T> *node) {
   if (this->root == NULL)
     return;
