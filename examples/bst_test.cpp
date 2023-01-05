@@ -1,4 +1,4 @@
-#include "../BST/BST.cpp"
+#include "../BST/BST.h"
 
 int main() {
   BST<int> *bst = new BST<int>(6);
