@@ -14,6 +14,10 @@ private:
   Node *right;
 
 public:
+  Node() {
+    this->left = NULL;
+    this->right = NULL;
+  };
   Node(T value, Node *left, Node *right);
   Node<T> *get_left();
   Node<T> *get_right();
