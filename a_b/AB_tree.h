@@ -17,7 +17,16 @@ public:
 
   // Returns the position if the value was found, else returns -1
   AB_Node<T> *find(T value);
-  void remove(T value);
+  void remove_child(AB_Node<T> *child) {
+
+    for (auto iter = this->children.begin(); iter != this->children.end();
+         ++iter) {
+      if (*iter == child) {
+        this->children.erase(iter);
+        break;
+      }
+    }
+  }
   void add_left_child(AB_Node<T> *left) { this->children.push_front(left); }
   void add_right_child(AB_Node<T> *right) { this->children.push_back(right); }
   void push_value(T value) { this->values.push_back(value); }
@@ -58,32 +67,71 @@ template <typename T> AB_Node<T>::AB_Node(T value) {
 
 template <typename T> AB_Node<T> *AB_Node<T>::find(T value) {
   auto iter = (values.begin()), child_iter = ++(children.begin());
-  T pos_1 = *iter;
 
-  if (pos_1 > value) {
-    if (*(children.rbegin()) != NULL)
-      return *(children.begin());
-    else
-      return this;
-  }
-  while (1) {
-    pos_1 = *iter;
+  // Two positions to detect in which of the children the value should be stored
 
-    // Returns same node if the value was found
-    if (pos_1 == value) {
-      return NULL;
-    }
+  while (iter != values.end()) {
+    auto pos_1 = iter;
+    pos_1 = iter;
 
-    if (pos_1 < value) {
+    ++iter;
+
+    if (*pos_1 == value)
+      break;
+
+    auto pos_2 = iter;
+
+    if (*pos_1 < value) {
+      if (pos_2 != values.end()) {
+        if (*pos_2 > value) {
+          if (*child_iter != NULL)
+            return *child_iter;
+          else
+            return this;
+        }
+      } else {
+        if (*child_iter != NULL)
+          return *child_iter;
+        else
+          return this;
+      }
+    } else {
+      --child_iter;
       if (*child_iter != NULL)
         return *child_iter;
       else
         return this;
     }
 
-    ++iter;
-    child_iter++;
+    ++child_iter;
   }
+
+  return NULL;
+  /*
+    if (pos_1 > value) {
+      if (*(children.rbegin()) != NULL)
+        return *(children.begin());
+      else
+        return this;
+    }
+    while (1) {
+      pos_1 = *iter;
+      // Returns same node if the value was found
+      if (pos_1 == value) {
+        return NULL;
+      }
+
+      if (pos_1 < value) {
+        if (*child_iter != NULL) {
+
+          return *child_iter;
+        } else
+          return this;
+      }
+
+      ++iter;
+      child_iter++;
+    }*/
 }
 
 template <typename T> AB_Node<T> AB_Node<T>::get_child(int position) {
@@ -165,7 +213,6 @@ AB_Node<T> *AB_Node<T>::rebalance(AB_Node<T> *parent, int a, int b) {
       if (counter == (b + 1) / 2 - 1) {
 
         split_value = (*iter);
-        child_iter++;
         ++iter;
         break;
       }
@@ -188,7 +235,6 @@ AB_Node<T> *AB_Node<T>::rebalance(AB_Node<T> *parent, int a, int b) {
       std::advance(child_iter, 1);
       iter++;
     }
-    child_iter++;
     right_child->add_right_child(*child_iter);
 
     if (parent == NULL) {
@@ -197,6 +243,7 @@ AB_Node<T> *AB_Node<T>::rebalance(AB_Node<T> *parent, int a, int b) {
       new_parent->set_right(right_child);
       return new_parent;
     } else {
+      parent->remove_child(this);
       parent->insert(split_value, left_child, right_child, a, b);
     }
   }
@@ -256,6 +303,7 @@ template <typename T> void AB_tree<T>::insert(T value) {
     }
 
     if (last_node == curr_node) {
+      curr_node = last_node;
       break;
     }
 
